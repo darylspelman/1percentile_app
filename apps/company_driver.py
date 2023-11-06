@@ -21,18 +21,6 @@ from app import app
 
 
 
-##################
-# EDITS TO BE MADE
-# Add simple summary to the top - market cap, ADV, sector, Industry
-# Add change yoy
-# Change order of the spider diagram to swap EQ and valuation
-# Set chart titles with better names
-# Multiply the %age numbers by 100
-# Add data table for the metrics
-##################
-
-
-
 def get_spider_data(ticker):
     """
     Takes a ticker and full database and returns a dataframe for plotting the full spider diagram
@@ -273,58 +261,22 @@ def generate_layout_children(graph_ids, per_line, height):
 df = pd.read_pickle('data/business_quality_data.pkl')
 
 # Define the score historgrams for the first row
-metric_list_A = ['BQ_score', 'V_score', 'EQ_score', 'govern_score']
-graphs1=[f'histogram-{i+1}' for i in range(len(metric_list_A))]
+metric_listA = ['BQ_score', 'V_score']
+metric_listB = ['EQ_score', 'govern_score']
 
+graphsA=[f'histogram-{i+1}' for i in range(len(metric_listA))]
+graphsB=[f'histogram-{i+3}' for i in range(len(metric_listB))]
 
+print(graphsA)
 
 # Define the histogram plots for the key metrics
-#Capital Structure
-met_roc = ['ROE', 'median ROE 3-yr', 'ROE_change', 'ROA', 'RNOA']
-g_roc = [f'hist_roc-{i+1}' for i in range(len(met_roc))]
-
-#Dupont
-met_dupont = ['PM', 'sales/assets', 'assets/equity']
-g_dupont = [f'hist_dupont-{i+1}' for i in range(len(met_dupont))]
-
-#Growth
-met_growth = ['Revenue 1-yr CAGR', 'Revenue 3-yr CAGR', 'ShareholderEquity 1-yr CAGR', 'ShareholderEquity 3-yr CAGR']
-g_growth = [f'hist_growth-{i+1}' for i in range(len(met_growth))]
-
-#Profitability
-met_profit = ['GPM%', 'OPMargin', 'OPM_change', 'PM', 'median PM 3-yr', 'PM_change']
-g_profit = [f'hist_profit-{i+1}' for i in range(len(met_profit))]
-
-#Asset Intensity
-met_ai = ['sales/assets', 'sales/asset_change', 'Sales/avg_NOA']
-g_ai = [f'hist_ai-{i+1}' for i in range(len(met_ai))]
-
-# Capital Structure
-met_cap = ['assets/equity', 'assets/equity_change'] #Add net_debt
-g_cap = [f'hist_cap-{i+1}' for i in range(len(met_cap))]
-
-# Reinvestment
-met_inv = ['R&D_pctSales'] #Add net_debt
-g_inv = [f'hist_inv-{i+1}' for i in range(len(met_inv))]
-
-# Shareholder Transaction
-met_share = ['Share growth', 'div_payout_rate'] #Add net_debt
-g_share = [f'hist_share-{i+1}' for i in range(len(met_share))]
-
-# Valuation
-met_val = ['P/E_ttm', 'P/B', 'P/S_ttm', 'EV/EBIT_ttm', 'EV/EBITDA_ttm']
-g_val = [f'hist_val-{i+1}' for i in range(len(met_val))]
-
-# Earnings Quality
-met_eq = ['days_CCC', 'days_CCC_change', 'days_sales_outstanding', 'days_inventory_outstanding', 'days_payables_outstanding']
-g_eq = [f'hist_eq-{i+1}' for i in range(len(met_eq))]
-
-
-
-# Combine all metrics together
-met_comb = met_roc + met_dupont + met_growth + met_profit + met_ai + met_cap + met_inv + met_share + met_val + met_eq
-g_comb = g_roc + g_dupont + g_growth + g_profit + g_ai + g_cap + g_inv + g_share + g_val + g_eq
-
+metric_list2 = [['ROE', 'median ROE 3-yr', 'ROE_change', 'ROA', 'RNOA', 'assets/equity', 'assets/equity_change', 'OPMargin', 
+               'PM', 'median PM 3-yr', 'PM_change', 'OPM_change', 'Revenue 1-yr CAGR', 'ShareholderEquity 1-yr CAGR', 
+               'Revenue 3-yr CAGR', 'ShareholderEquity 3-yr CAGR', 'Share growth', 'div_payout_rate', 
+               'sales/assets', 'sales/asset_change', 'Sales/avg_NOA', 'days_CCC', 'days_CCC_change', 'R&D_pctSales',
+               'days_sales_outstanding', 'days_inventory_outstanding', 'days_payables_outstanding',
+                'P/E_ttm', 'P/B', 'P/S_ttm', 'EV/EBIT_ttm', 'EV/EBITDA_ttm']]
+graphs2 = [f'hist-{i+1}' for i in range(len(metric_list2))]
 
 
 # The APP
@@ -350,62 +302,18 @@ layout = html.Div([
                  , className="text-center")
                 , className="mb-3 mt-3")),  # This will display the message style={'padding-top':'20px'}
         
-        # Score 2x2 histogram 
-        *generate_layout_children(graphs1, 2, 300),
-
-        # Spider
-        dcc.Graph(id='spider-plot'),
         
-        # Dot plots
+        *generate_layout_children(graphsA, 2, 300),
+        *generate_layout_children(graphsB, 2, 300),
+        
+        dcc.Graph(id='spider-plot'),
         dcc.Graph(id='dot-plot1'),
         dcc.Graph(id='dot-plot2'),
-
-        # DRIVER BREAKDOWN
-        dbc.Row(dbc.Col(html.H2("Performance Drivers", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
         
-        dbc.Row(dbc.Col(html.H3("Return on Capital", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_roc, 3, 200),
-
-        dbc.Row(dbc.Col(html.H3("Dupont Decomposition", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_dupont, 3, 200),
-
-        dbc.Row(dbc.Col(html.H3("Growth", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),        
-        *generate_layout_children(g_growth, 3, 200),
-    
-        dbc.Row(dbc.Col(html.H3("Profitability", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_profit, 3, 200),
+        dbc.Row(dbc.Col(html.H2("Return on Capital", className="text-left"),
+                className="mb-3 mt-3")),
         
-        dbc.Row(dbc.Col(html.H3("Asset Intensity", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_ai, 3, 200),
-
-        dbc.Row(dbc.Col(html.H3("Capital Structure", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_cap, 3, 200),
-
-        dbc.Row(dbc.Col(html.H3("Reinvestment", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_inv, 3, 200),
-
-        dbc.Row(dbc.Col(html.H3("Shareholder Transaction", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_share, 3, 200),
-        
-        dbc.Row(dbc.Col(html.H3("Valuation", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_val, 3, 200),
-        
-        dbc.Row(dbc.Col(html.H3("Earnings Quality", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_eq, 3, 200),
-
-        
-        # *generate_layout_children(graphs2, 3, 200),
+        #*generate_layout_children(graphs2, 4, 200),
     ])
 ])
 
@@ -423,7 +331,7 @@ def update_histograms(n_clicks, ticker):
         return [dash.no_update for _ in range(4)]  # Return no updates for all 4 graphs
     else:
         bins = 100
-        return [generate_histogram(ticker, metric, bins) for metric in metric_list_A]
+        return [generate_histogram(ticker, metric, bins) for metric in (metric_listA + metric_listB)]
 
 
 # Second callback for the spider plot and the message
@@ -459,7 +367,7 @@ def update_dot_plots(n_clicks, ticker):
 
 
 # Third callback for all the histograms
-output_args = [Output(graph, 'figure') for graph in g_comb]
+output_args = [Output(graph, 'figure') for graph in graphs2]
 @app.callback(
     output_args,
     [Input('submit-button', 'n_clicks')],
@@ -467,10 +375,10 @@ output_args = [Output(graph, 'figure') for graph in g_comb]
 )
 def update_histograms2(n_clicks, ticker):
     if ticker not in df.index:
-        return [dash.no_update for _ in range(len(g_comb))]  # Return no updates based on the length of graphs2
+        return [dash.no_update for _ in range(len(graphs2))]  # Return no updates based on the length of graphs2
     else:
-        bins = 100  # Modify as needed
-        return [generate_histogram(ticker, metric, bins) for metric in (met_comb)]
+        bins = 75  # Modify as needed
+        return [generate_histogram(ticker, metric, bins) for metric in metric_list2]
 
 
 

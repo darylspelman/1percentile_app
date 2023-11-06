@@ -210,9 +210,10 @@ def update_figure(log_mar_cap_range, log_val_turnover_min, primary_check, select
             ),
             name=legend_label,
                    text=filtered_df[filtered_df[legend] == legend_label].apply(
-            lambda row: f"{row.name}<br>{row['name']}<br>Market Cap: {int(row['mar_cap_mUSD']):,} mUSD" + 
+                       lambda row: f"{row.name}<br>{row['name']}<br>Market Cap: {int(row['mar_cap_mUSD']):,} mUSD" + 
                        f"<br>ADV: {int(row['3m_val_turnover_mUSD']):,.1f} mUSD<br>Sector: {row['sector']}<br>" + 
-                       f"Industry: {row['industry']}",
+                       f"Industry: {row['industry']}<br>BQ Percentile: {row['BQ_score_percentile']*100:,.1f}<br>" +
+                       f"Valuation Percentile: {row['V_score_percentile']*100:,.1f}",
             axis=1
             ),
             hoverinfo='text'
