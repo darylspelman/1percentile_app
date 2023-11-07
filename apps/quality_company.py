@@ -6,7 +6,7 @@ Created on Sat Aug 19 20:01:03 2023
 """
 
 import dash
-from dash import dcc, html
+from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
@@ -75,6 +75,76 @@ def get_spider_data(ticker):
                             'Governance:\nBoard Quality',
                             'Governance:\nCommittee Quality']
     return df_spider
+
+
+
+def table_data(ticker):
+    """
+    Create the summary dataframe for data table
+    """
+    df_table = pd.DataFrame(df.loc[ticker])
+    df_table.columns=['Metric']
+    
+    # List of metrics for table
+    metric_list = ['BQ_score', 'V_score', 'EQ_score', 'govern_score',
+                    'ROE', 'median ROE 3-yr', 'ROA', 'RNOA', 'ROCE',
+                    'GPM%', 'OPMargin', 'PM', 'median PM 3-yr', 'SGA_pctSales', 'R&D_pctSales',
+                    'Revenue 1-yr CAGR', 'ShareholderEquity 1-yr CAGR', 'Revenue 3-yr CAGR', 'ShareholderEquity 3-yr CAGR',
+                    'assets/equity', 'net_debt/equity',
+                    'sales/assets', 'Sales/avg_NOA',
+                    'Share growth', 'div_payout_rate',
+                    'days_CCC', 'days_sales_outstanding', 'days_inventory_outstanding', 'days_payables_outstanding',
+                    'P/E_ttm', 'P/B', 'P/S_ttm', 'EV/EBIT_ttm', 'EV/EBITDA_ttm']
+    
+    # Benchmark list and table headings
+    peer_group = ['Global', 'All Country', 'Country & Sector', 'Global Industry']
+    
+    # Cycle through metrics and peer groups
+    working = pd.DataFrame(index = metric_list)
+    benchmark_list = []
+    for peer in peer_group:
+        if peer == 'Global':
+            benchmark = df
+        elif peer == 'All Country':
+            benchmark = df[df['country_name'] == df_table.loc['country_name'][0]]
+        elif peer == 'Global Industry':
+            benchmark = df[df['industry'] == df_table.loc['industry'][0]]
+        elif peer == 'Country & Sector':
+            benchmark = df[(df['country_name'] == df_table.loc['country_name'][0]) & 
+                                  (df['sector'] == df_table.loc['sector'][0])]
+        benchmark_list.append(len(benchmark))
+    
+        percent_list = []
+        value_list = []
+        for metric in metric_list:
+            value = df_table.loc[metric].iloc[0]
+            if np.isnan(float(value)):
+                percentile = np.nan
+            else:
+                percentile = percentileofscore(benchmark[metric].dropna(), value)
+            
+            percent_list.append(round(float(percentile),0))
+            value_list.append(value)
+        working[peer] = percent_list
+    
+    # Add number of observations
+    working['Value'] = value_list
+    toprow = pd.DataFrame([benchmark_list], columns=peer_group, index=['Number companies'])
+    working = pd.concat([toprow, working], axis=0)
+    
+    # Add label names
+    labels = []
+    for item in working.index:
+        if item in metric_name.index:
+            add_label = metric_name.loc[item]['Name']
+        else:
+            add_label = item
+        labels.append(add_label)
+    working['Metric'] = labels
+    
+    # Put columns in correct order
+    working = working[['Metric', 'Value'] + peer_group]
+    return working
 
 
 
@@ -289,6 +359,26 @@ def generate_layout_children(graph_ids, per_line, height):
 
 
 
+def format_value(value):
+    """
+    Format the values column at the start of the datatable and returns a string
+    """
+    
+    # Check if the value is NaN
+    if isinstance(value, (float, np.floating)) and np.isnan(value):
+        return ''
+    # Check if the value is a number
+    elif isinstance(value, (int, float)):
+        formatted_value = '{:.2f}'.format(value)
+        # Remove trailing zeros and the decimal point if the result is an integer
+        formatted_value = formatted_value.rstrip('0').rstrip('.')
+        return formatted_value
+    else:
+        return str(value)
+
+
+
+
 # Load the datafile
 df = pd.read_pickle('data/business_quality_data.pkl')
 metric_name = pd.read_csv('inputs/metric_name.csv', index_col='Metric')
@@ -384,15 +474,30 @@ layout = html.Div([
         *generate_layout_children(graphs1, 2, 300),
 
         # Spider
-        dcc.Graph(id='spider-plot', style={'height': '600px'}),
+        dcc.Graph(id='spider-plot'),
         
         # Dot plots
-        dcc.Graph(id='dot-plot1', style={'height': '600px'}),
+        dcc.Graph(id='dot-plot1'),
         
         dcc.Graph(id='dot-plot2', style={'height': '600px'}),
         
         # Historical line chart
         dcc.Graph(id='line-chart', style={'height': '450px'}),
+
+        # SUMMARY TABLE
+        dbc.Row(dbc.Col(html.H2("Summary Performance vs Peer Groups", className="text-left"), 
+                         className="mb-3 mt-3", style={'padding-top':'20px'})),
+        
+        html.Div([
+        dash_table.DataTable(id='summ-table',
+                             style_table={'overflowY': 'auto'},
+                             style_header = {
+                                    'backgroundColor': '#3E5C7B',
+                                    'color': 'white',
+                                    'fontWeight': 'bold',
+                                    'whiteSpace': 'normal'  # Enable text wrapping
+                                }),
+                ]),
 
         # DRIVER BREAKDOWN
         dbc.Row(dbc.Col(html.H2("Performance Drivers", className="text-left"), 
@@ -536,6 +641,89 @@ def update_line_chart(n_clicks, ticker):
     fig.update_yaxes(range=[0, 100])
     
     return fig
+
+
+
+@app.callback(
+    [Output('summ-table', 'data'),
+     Output('summ-table', 'columns'),
+     Output('summ-table', 'style_data_conditional')],
+    [Input('submit-button', 'n_clicks')],
+    [dash.dependencies.State('ticker-input', 'value')]
+)
+def update_table(n_clicks, ticker):
+    if ticker not in df.index:
+        return dash.no_update  # Return an empty figure if no ticker is provided
+
+    # Get data
+    data = table_data(ticker)
+    data['Value'] = data['Value'].apply(format_value)
+
+    # Define columns
+    columns = [{'name': col, 'id': col} for col in data.columns]
+
+    # Define the upper and lower thresholds and colours for the percentile columns in the chart
+    threshold_upper = 85
+    threshold_lower = 15
+    colour_upper = '#B0CAC4'
+    colour_lower = '#D08452'
+    
+    style_data_conditional = [
+        # Set column relative widths
+        {'if': {'column_id': 'Metric'},
+         'width': '30%',
+         'whiteSpace': 'normal'},  # Enable text wrapping
+        {'if': {'column_id': 'Value'},
+         'width': '14%'},
+        {'if': {'column_id': 'Global'},
+         'width': '14%'},
+        {'if': {'column_id': 'All Country'},
+         'width': '14%'},
+        {'if': {'column_id': 'Country & Sector'},
+         'width': '14%'},
+        {'if': {'column_id': 'Global Industry'},
+         'width': '14%'},
+        
+        #Highlight the outliers by row
+        {'if': {'column_id': 'Global',
+            'filter_query': f'{{Global}} > {threshold_upper}'},
+         'backgroundColor': colour_upper},       
+        {'if': {'column_id': 'Global',
+            'filter_query': f'{{Global}} < {threshold_lower} && {{Global}} > 0'},
+         'backgroundColor': colour_lower},          
+
+        {'if': {'column_id': 'All Country',
+            'filter_query': f'{{All Country}} > {threshold_upper}'},
+         'backgroundColor': colour_upper},       
+        {'if': {'column_id': 'All Country',
+            'filter_query': f'{{All Country}} < {threshold_lower} && {{All Country}} > 0'},
+         'backgroundColor': colour_lower}, 
+        
+        {'if': {'column_id': 'Country & Sector',
+            'filter_query': f'{{Country & Sector}} > {threshold_upper}'},
+         'backgroundColor': colour_upper},       
+        {'if': {'column_id': 'Country & Sector',
+            'filter_query': f'{{Country & Sector}} < {threshold_lower} && {{Country & Sector}} > 0'},
+         'backgroundColor': colour_lower},
+        
+        {'if': {'column_id': 'Global Industry',
+            'filter_query': f'{{Global Industry}} > {threshold_upper}'},
+         'backgroundColor': colour_upper},       
+        {'if': {'column_id': 'Global Industry',
+            'filter_query': f'{{Global Industry}} < {threshold_lower} && {{Global Industry}} > 0'},
+         'backgroundColor': colour_lower},
+        
+        # Ensure first row is white regardless
+        {'if': {'row_index': 0},
+         'backgroundColor': 'white'}
+        
+        ]
+    
+    
+    
+
+    return data.to_dict('records'), columns, style_data_conditional
+
 
 
 # Third callback for all the histograms
