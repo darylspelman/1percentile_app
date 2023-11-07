@@ -9,26 +9,23 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
+
 from scipy.stats import percentileofscore
 
 #Needed when running in full environment
 from app import app
 
-#from memory_profiler import profile
-
-
 
 ##################
 # EDITS TO BE MADE
-# Add simple summary to the top - market cap, ADV, sector, Industry
-# Add change yoy
-# Change order of the spider diagram to swap EQ and valuation
-# Set chart titles with better names
-# Multiply the %age numbers by 100
+# Add description field
+# Add Summary IS, BS, CFS
 # Add data table for the metrics
+# Add S&M %
 ##################
 
 
@@ -44,12 +41,15 @@ def get_spider_data(ticker):
             'BQ_capital_structure_score_percentile',
             'BQ_reinvestment_score_percentile',
             'BQ_shareholder_score_percentile',
+
+            'V_score_fundamental_percentile',
+            'V_score_relative_percentile',
+
             'EQ_accruals_comp_score_percentile',
             'EQ_assumption_comp_score_percentile',
             'EQ_risk_comp_score_percentile',
             'EQ_compound_comp_score_percentile',
-            'V_score_fundamental_percentile',
-            'V_score_relative_percentile',
+
             'Alignement with Shareholders_percentile',
             'Board Quality_percentile',
             'Committee Quality_percentile']])    
@@ -62,12 +62,15 @@ def get_spider_data(ticker):
                             'BQ:\nCapital Structure',
                             'BQ:\nReinvestment',
                             'BQ:\nShareholder Transactions',
+
+                            'Valuation:\nFundamental',
+                            'Valuation:\nRelative',
+ 
                             'EQ:\nAccruals',
                             'EQ:\nAccounting Assumptions',
                             'EQ:\nRisk Indicator',
                             'EQ:\nCompound Metric',
-                            'Valuation:\nFundamental',
-                            'Valuation:\nRelative',
+
                             'Governance:\nAlignment with Shareholder',
                             'Governance:\nBoard Quality',
                             'Governance:\nCommittee Quality']
@@ -94,8 +97,8 @@ def update_spider_plot(n_clicks, ticker):
         theta=df_spider['labels'].tolist() + [df_spider['labels'].tolist()[0]],
         fill='toself',
         mode='lines+markers',
-        marker=dict(size=8, color='#3E5C7B'),
-        line=dict(color='#3E5C7B'),
+        marker=dict(size=8, color='#558BB8'),
+        line=dict(color='#558BB8'),
         name='Data'
     )
     
@@ -141,25 +144,31 @@ def generate_histogram(ticker, metric, bins):
         upper_bound = data.quantile(0.975)
         filtered_series = data[(data >= lower_bound) & (data <= upper_bound)]
         data = filtered_series
-        height_val=200
+        height_val=250
 
     fig = go.Figure()
     # Compute histogram using numpy first to get the bin counts
     hist, bin_edges = np.histogram(data, bins=bins)
     max_y = np.max(hist)  # Corrected to calculate the maximum value in hist
     
-    hist_trace = go.Histogram(x=data, name=metric, marker=dict(color='blue', opacity=1), nbinsx=bins)
+    hist_trace = go.Histogram(x=data, name=metric, marker=dict(color='#558BB8', opacity=1), nbinsx=bins)
     fig.add_trace(hist_trace)
 
     if np.isnan(specific_value) != True:
         fig.add_shape(go.layout.Shape(type='line', x0=specific_value, x1=specific_value, y0=0, y1=max_y, line=dict(color='red', width=2)))
         fig.add_annotation(text=custom_text, xref="paper", yref="paper", x=0.05, y=0.95, showarrow=False, align="left", bgcolor="white", bordercolor="black", borderwidth=1, font=dict(size=12))
     
-    fig.update_layout(title={'text': metric, 'y':0.95, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top'},
-                      height = height_val,
-                      margin=dict(l=20, r=20, t=50, b=20))
+    # Lookup chart title
+    chart_title = metric_name.loc[metric]['Name']
     
-    # Set a fixed y-axis range to ensure consistency
+    
+    fig.update_layout(title={'text': chart_title, 'y':0.95, 'x':0.5, 'xanchor': 'center', 'yanchor': 'top'},
+                      height = height_val,
+                      margin=dict(l=20, r=20, t=50, b=20),
+                      modebar_remove=['zoom', 'pan', 'toImage', 'lasso2d', 'zoomOut2d', 'zoomIn2d', 'resetScale2d', 'autoScale2d', 'select2d']
+                      )
+    
+    # fig.show(config={"displayModeBar": False})
     return fig
 
 
@@ -237,16 +246,27 @@ def dot_plot(ticker, metric1, metric2):
                              text=ticker,  # this will label the red dot with the ticker's name
                              textposition="top center"))
 
-    # Update layout
-    fig.update_layout(title=title,
-                      xaxis_title='Business Quality Score (higher better)',
-                      yaxis_title=yaxis_title,
-                      xaxis=dict(gridcolor='gray', gridwidth=0.5, zerolinecolor='gray', zerolinewidth=0.5),
-                      yaxis=dict(gridcolor='gray', gridwidth=0.5, zerolinecolor='gray', zerolinewidth=0.5),
-                      plot_bgcolor='white',
-                      paper_bgcolor='white',
-                      height=600
-                     )
+    # Update layout    
+    fig.update_layout(
+                 title=title,
+                 xaxis_title='Business Quality Score (higher better)',
+                 yaxis_title=yaxis_title,
+                 xaxis=dict(gridcolor='gray', gridwidth=0.5, zerolinecolor='gray', zerolinewidth=0.5),
+                 yaxis=dict(gridcolor='gray', gridwidth=0.5, zerolinecolor='gray', zerolinewidth=0.5),
+                 plot_bgcolor='white',
+                 paper_bgcolor='white',
+                 height=700,
+                 legend={
+                     'x': 0.05,  # Adjust this value to change the horizontal position of the legend
+                     'y': 0.95,  # Adjust this value to change the vertical position of the legend
+                     'xanchor': 'left',  # Set the horizontal anchor to the left
+                     'yanchor': 'top',   # Set the vertical anchor to the top
+                     'bgcolor': 'rgba(255, 255, 255, 0.7)',  # Adjust the background color and opacity
+                     'bordercolor': 'rgba(0, 0, 0, 0.3)',   # Adjust the border color and opacity
+                     'borderwidth': 1,  # Set the border width
+                 },
+     )
+    
     return fig
 
 
@@ -271,6 +291,8 @@ def generate_layout_children(graph_ids, per_line, height):
 
 # Load the datafile
 df = pd.read_pickle('data/business_quality_data.pkl')
+metric_name = pd.read_csv('inputs/metric_name.csv', index_col='Metric')
+
 
 # Define the score historgrams for the first row
 metric_list_A = ['BQ_score', 'V_score', 'EQ_score', 'govern_score']
@@ -280,7 +302,7 @@ graphs1=[f'histogram-{i+1}' for i in range(len(metric_list_A))]
 
 # Define the histogram plots for the key metrics
 #Capital Structure
-met_roc = ['ROE', 'median ROE 3-yr', 'ROE_change', 'ROA', 'RNOA']
+met_roc = ['ROE', 'median ROE 3-yr', 'ROE_change', 'ROA', 'RNOA', 'ROCE']
 g_roc = [f'hist_roc-{i+1}' for i in range(len(met_roc))]
 
 #Dupont
@@ -292,7 +314,7 @@ met_growth = ['Revenue 1-yr CAGR', 'Revenue 3-yr CAGR', 'ShareholderEquity 1-yr 
 g_growth = [f'hist_growth-{i+1}' for i in range(len(met_growth))]
 
 #Profitability
-met_profit = ['GPM%', 'OPMargin', 'OPM_change', 'PM', 'median PM 3-yr', 'PM_change']
+met_profit = ['GPM%', 'OPMargin', 'OPM_change', 'PM', 'median PM 3-yr', 'PM_change', 'SGA_pctSales']
 g_profit = [f'hist_profit-{i+1}' for i in range(len(met_profit))]
 
 #Asset Intensity
@@ -300,7 +322,7 @@ met_ai = ['sales/assets', 'sales/asset_change', 'Sales/avg_NOA']
 g_ai = [f'hist_ai-{i+1}' for i in range(len(met_ai))]
 
 # Capital Structure
-met_cap = ['assets/equity', 'assets/equity_change'] #Add net_debt
+met_cap = ['assets/equity', 'assets/equity_change', 'net_debt/equity'] #Add net_debt
 g_cap = [f'hist_cap-{i+1}' for i in range(len(met_cap))]
 
 # Reinvestment
@@ -326,6 +348,9 @@ met_comb = met_roc + met_dupont + met_growth + met_profit + met_ai + met_cap + m
 g_comb = g_roc + g_dupont + g_growth + g_profit + g_ai + g_cap + g_inv + g_share + g_val + g_eq
 
 
+# Define number of charts per row for histogram metrics
+chart_per_row = 3
+height_per_chart = 250
 
 # The APP
 # needed only if running this as a single page app
@@ -346,19 +371,28 @@ layout = html.Div([
         # Get the ticker input and print the name
         dcc.Input(id='ticker-input', value='AAPL', type='text'),  # Default value is AAPL
         html.Button(id='submit-button', n_clicks=0, children='Submit'),
+
+        # Give ticker name and some text
         dbc.Row(dbc.Col(html.H2(id='ticker-message'                     
                  , className="text-center")
+                , className="mb-3 mt-3")),  # This will display the message style={'padding-top':'20px'}
+        dbc.Row(dbc.Col(html.Div(id='stock-info'                     
+                 , className="text-left")
                 , className="mb-3 mt-3")),  # This will display the message style={'padding-top':'20px'}
         
         # Score 2x2 histogram 
         *generate_layout_children(graphs1, 2, 300),
 
         # Spider
-        dcc.Graph(id='spider-plot'),
+        dcc.Graph(id='spider-plot', style={'height': '600px'}),
         
         # Dot plots
-        dcc.Graph(id='dot-plot1'),
-        dcc.Graph(id='dot-plot2'),
+        dcc.Graph(id='dot-plot1', style={'height': '600px'}),
+        
+        dcc.Graph(id='dot-plot2', style={'height': '600px'}),
+        
+        # Historical line chart
+        dcc.Graph(id='line-chart', style={'height': '450px'}),
 
         # DRIVER BREAKDOWN
         dbc.Row(dbc.Col(html.H2("Performance Drivers", className="text-left"), 
@@ -366,48 +400,46 @@ layout = html.Div([
         
         dbc.Row(dbc.Col(html.H3("Return on Capital", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_roc, 3, 200),
+        *generate_layout_children(g_roc, chart_per_row, height_per_chart),
 
         dbc.Row(dbc.Col(html.H3("Dupont Decomposition", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_dupont, 3, 200),
+        *generate_layout_children(g_dupont, chart_per_row, height_per_chart),
 
         dbc.Row(dbc.Col(html.H3("Growth", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})),        
-        *generate_layout_children(g_growth, 3, 200),
+        *generate_layout_children(g_growth, chart_per_row, height_per_chart),
     
         dbc.Row(dbc.Col(html.H3("Profitability", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_profit, 3, 200),
+        *generate_layout_children(g_profit, chart_per_row, height_per_chart),
         
         dbc.Row(dbc.Col(html.H3("Asset Intensity", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_ai, 3, 200),
+        *generate_layout_children(g_ai, chart_per_row, height_per_chart),
 
         dbc.Row(dbc.Col(html.H3("Capital Structure", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_cap, 3, 200),
+        *generate_layout_children(g_cap, chart_per_row, height_per_chart),
 
         dbc.Row(dbc.Col(html.H3("Reinvestment", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_inv, 3, 200),
+        *generate_layout_children(g_inv, chart_per_row, height_per_chart),
 
         dbc.Row(dbc.Col(html.H3("Shareholder Transaction", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_share, 3, 200),
+        *generate_layout_children(g_share, chart_per_row, height_per_chart),
         
         dbc.Row(dbc.Col(html.H3("Valuation", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_val, 3, 200),
+        *generate_layout_children(g_val, chart_per_row, height_per_chart),
         
         dbc.Row(dbc.Col(html.H3("Earnings Quality", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_eq, 3, 200),
-
-        
-        # *generate_layout_children(graphs2, 3, 200),
+        *generate_layout_children(g_eq, chart_per_row, height_per_chart),
     ])
 ])
+
 
 # First callback for the histograms
 @app.callback(
@@ -429,7 +461,8 @@ def update_histograms(n_clicks, ticker):
 # Second callback for the spider plot and the message
 @app.callback(
     [Output('spider-plot', 'figure'),
-     Output('ticker-message', 'children')],  # Two outputs: one for the plot and one for the message
+     Output('ticker-message', 'children'),
+     Output('stock-info', 'children')],  # Two outputs: one for the plot and one for the message
     [Input('submit-button', 'n_clicks')],
     [dash.dependencies.State('ticker-input', 'value')]
 )
@@ -439,7 +472,15 @@ def update_figure_and_message(n_clicks, ticker):
     else:
         fig = update_spider_plot(n_clicks, ticker)
         name = df.loc[ticker]['name'] + ' (' + ticker + ')'
-        return fig, name  # Graph updated, message updated with name
+        info = [f"Market Cap (bUSD):  {df.loc[ticker]['mar_cap_mUSD']/1000:,.1f}",
+                html.Br(),
+                f"ADV (mUSD): {df.loc[ticker]['3m_val_turnover_mUSD']:,.1f}",
+                html.Br(),
+                f"Sector: {df.loc[ticker]['sector']}",
+                html.Br(),
+                f"Industry: {df.loc[ticker]['industry']}"]
+        return fig, name, info  # Graph updated, message updated with name
+
 
 # Second callback for the spider plot and the message
 @app.callback(
@@ -456,6 +497,45 @@ def update_dot_plots(n_clicks, ticker):
         fig2 = dot_plot(ticker, 'BQ_score', 'BQ_score_chg_0y')
     
         return fig1, fig2  # Graph updated, message updated with name
+
+
+#Plots the historical percentile line chart
+@app.callback(
+    Output('line-chart', 'figure'),
+    [Input('submit-button', 'n_clicks')],
+    [dash.dependencies.State('ticker-input', 'value')]  # Assuming you have a ticker input field
+)
+def update_line_chart(n_clicks, ticker):
+    if ticker not in df.index:
+        return dash.no_update  # Handle the case when the ticker is not in your DataFrame
+    
+    # Select the historical data for the specified metrics
+    historical_data = df.loc[ticker][['BQ_score_annual_0y_pctile', 'BQ_score_annual_-1y_pctile', 'BQ_score_annual_-2y_pctile']]*100
+    
+    # Create a line chart using Plotly
+    fig = go.Figure()
+    
+    # Add traces for each metric:
+    fig.add_trace(go.Scatter(
+        x=['0 Year','-1 Year','-2 Year'],
+        y=historical_data,
+        mode='lines+markers',
+    ))
+    
+    # Update the chart layout
+    fig.update_layout(
+        title='Historical BQ Score Percentiles',
+        yaxis_title='Percentile',
+        xaxis=dict(autorange='reversed')
+    )
+    
+    # Change the line color for the single trace
+    fig.update_traces(line=dict(color='#558BB8'))
+
+    # Set the y-axis range from 0 to 1
+    fig.update_yaxes(range=[0, 100])
+    
+    return fig
 
 
 # Third callback for all the histograms

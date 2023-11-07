@@ -1,0 +1,77 @@
+﻿Metric,Name
+name,
+mar_cap_mUSD,
+3m_val_turnover_mUSD,
+country_name,
+exchange1,
+sector,
+industry,
+primary,
+BQ_score,Business Quality Score
+BQ_score_percentile,
+EQ_score,Earnings Quality Score
+EQ_score_percentile,
+govern_score,Governance Score
+govern_score_percentile,
+V_score,Valuation Score
+V_score_percentile,
+BQ_score_annual_0y,
+BQ_score_annual_0y_pctile,
+BQ_score_annual_-1y,
+BQ_score_annual_-1y_pctile,
+BQ_score_annual_-2y,
+BQ_score_annual_-2y_pctile,
+BQ_score_chg_0y,
+BQ_score_chg_0y_pctile,
+BQ_RoC_score_percentile,
+BQ_growth_score_percentile,
+BQ_profitability_score_percentile,
+BQ_asset_intensity_score_percentile,
+BQ_capital_structure_score_percentile,
+BQ_reinvestment_score_percentile,
+BQ_shareholder_score_percentile,
+EQ_accruals_comp_score_percentile,
+EQ_assumption_comp_score_percentile,
+EQ_risk_comp_score_percentile,
+EQ_compound_comp_score_percentile,
+V_score_fundamental_percentile,
+V_score_relative_percentile,
+Alignement with Shareholders_percentile,
+Board Quality_percentile,
+Committee Quality_percentile,
+ROE,RoE
+median ROE 3-yr,RoE (median 3-yr)
+ROE_change,RoE yoy change
+ROA,RoA
+RNOA,RNOA
+assets/equity,Assets / Equity
+assets/equity_change,Assets / Equity change
+GPM%,Gross Margin
+OPMargin,OP Margin
+PM,Profit Margin
+median PM 3-yr,PM (median 3-yr)
+PM_change,PM change
+OPM_change,OPM change
+Revenue 1-yr CAGR,Revenue growth (1-yr)
+ShareholderEquity 1-yr CAGR,Book Equity growth (1-yr)
+Revenue 3-yr CAGR,Revenue growth (3-yr CAGR)
+ShareholderEquity 3-yr CAGR,Book Equity growth (3-yr)
+Share growth,Share Growth (1-yr)
+div_payout_rate,Payout Rate
+sales/assets,Sales / Assets
+sales/asset_change,Sales / Assets change
+Sales/avg_NOA,Sales / NOA
+days_CCC,Cash Conversion Cycle (days)
+days_CCC_change,CCC change (days)
+R&D_pctSales,R&D % Sales
+days_sales_outstanding,Days Sales
+days_inventory_outstanding,Days Inventory
+days_payables_outstanding,Days Payables
+P/E_ttm,P/E ttm
+P/B,P/B
+P/S_ttm,P/S ttm
+EV/EBIT_ttm,EV/EBIT ttm
+EV/EBITDA_ttm,EV/EBITDA ttm
+SGA_pctSales,SG&A / Sales
+ROCE,ROIC
+net_debt/equity,Net Debt / Equity
