@@ -24,8 +24,7 @@ from app import app
 # EDITS TO BE MADE
 # Add description field
 # Add Summary IS, BS, CFS
-# Add data table for the metrics
-# Add S&M %
+# Add S&M %, capex% sales, FCF % sales, CFO % sales
 # Fix cash conversion calculation (subtract payables)
 # Allow data enty for ticker to be in lower case letters
 ##################

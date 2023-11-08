@@ -75,13 +75,13 @@ layout = html.Div(
                             ),
                             className="mb-3",
                         ),
-                    ]
+                    ],style={"margin-left":"10%"}
                 ),
                 ### Closing padding
                 dbc.Row(style={"height": "20px"}),
             ],
             fluid=True,  # Make the container fluid to allow it to resize with the screen
-            style={"padding": "20px", "height": "100vh", "margin-left":"10%",  "margin-right":"10%"},  # Add padding around the container
+            style={"padding": "20px", "height": "100vh"},  # Add padding around the container
         ),        
     ],
     style={
