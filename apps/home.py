@@ -25,6 +25,7 @@ style_text = {
 }
 
 
+
 # change to app.layout if running as single page app instead
 layout = html.Div(
     [
@@ -63,14 +64,25 @@ layout = html.Div(
                             ),
                             className="mb-3",
                         ),
+                        dbc.Col(
+                            html.A(
+                                [
+                                    html.Img(src="/assets/rv-screen.png", height="45px", style=style_image),
+                                    dbc.NavbarBrand(["Metric Screen"], className="ml-2 navbar-brand-text"),
+                                ],
+                                style=style_htmlA,
+                                href="/metric_screen",
+                            ),
+                            className="mb-3",
+                        ),
                     ]
                 ),
                 ### Closing padding
                 dbc.Row(style={"height": "20px"}),
             ],
             fluid=True,  # Make the container fluid to allow it to resize with the screen
-            style={"padding": "20px", "height": "100vh"},  # Add padding around the container
-        ),
+            style={"padding": "20px", "height": "100vh", "margin-left":"10%",  "margin-right":"10%"},  # Add padding around the container
+        ),        
     ],
     style={
         "background-image": 'url("assets/airplane_dash_opaque2_3.jpg")',
