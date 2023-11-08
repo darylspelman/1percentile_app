@@ -26,6 +26,8 @@ from app import app
 # Add Summary IS, BS, CFS
 # Add data table for the metrics
 # Add S&M %
+# Fix cash conversion calculation (subtract payables)
+# Allow data enty for ticker to be in lower case letters
 ##################
 
 
@@ -390,7 +392,7 @@ graphs1=[f'histogram-{i+1}' for i in range(len(metric_list_A))]
 
 
 
-# Define the histogram plots for the key metrics
+# Define the histogram plots for the individual metric plots. Each section has it's own list
 #Capital Structure
 met_roc = ['ROE', 'median ROE 3-yr', 'ROE_change', 'ROA', 'RNOA', 'ROCE']
 g_roc = [f'hist_roc-{i+1}' for i in range(len(met_roc))]
@@ -459,8 +461,13 @@ layout = html.Div([
          ),
         
         # Get the ticker input and print the name
-        dcc.Input(id='ticker-input', value='AAPL', type='text'),  # Default value is AAPL
-        html.Button(id='submit-button', n_clicks=0, children='Submit'),
+        # dcc.Input(id='ticker-input', value='AAPL', type='text'),  # Default value is AAPL
+        # html.Button(id='submit-button', n_clicks=0, children='Submit'),
+
+        html.Div([
+            dcc.Input(id='ticker-input', value='AAPL', type='text', style={'margin-right': '10px'}),  # Default value is AAPL
+            html.Button(id='submit-button', n_clicks=0, children='Submit', style={'margin-left': '10px'}),
+        ], style={'padding': '10px'}),
 
         # Give ticker name and some text
         dbc.Row(dbc.Col(html.H2(id='ticker-message'                     
@@ -556,8 +563,9 @@ layout = html.Div([
     [dash.dependencies.State('ticker-input', 'value')]
 )
 def update_histograms(n_clicks, ticker):
+    ticker = ticker.upper()
     if ticker not in df.index:
-        return [dash.no_update for _ in range(4)]  # Return no updates for all 4 graphs
+        return [go.Figure() for _ in range(4)]  # Return no updates for all 4 graphs
     else:
         bins = 100
         return [generate_histogram(ticker, metric, bins) for metric in metric_list_A]
@@ -572,8 +580,9 @@ def update_histograms(n_clicks, ticker):
     [dash.dependencies.State('ticker-input', 'value')]
 )
 def update_figure_and_message(n_clicks, ticker):
+    ticker = ticker.upper()
     if ticker not in df.index:
-        return dash.no_update, 'Ticker not in database'  # No update to the graph, message updated
+        return go.Figure(), 'Ticker not in database', None  # No update to the graph, message updated
     else:
         fig = update_spider_plot(n_clicks, ticker)
         name = df.loc[ticker]['name'] + ' (' + ticker + ')'
@@ -595,8 +604,9 @@ def update_figure_and_message(n_clicks, ticker):
     [dash.dependencies.State('ticker-input', 'value')]
 )
 def update_dot_plots(n_clicks, ticker):
+    ticker = ticker.upper()
     if ticker not in df.index:
-        return dash.no_update, dash.no_update
+        return go.Figure(), go.Figure()
     else:
         fig1 = dot_plot(ticker, 'BQ_score', 'V_score')
         fig2 = dot_plot(ticker, 'BQ_score', 'BQ_score_chg_0y')
@@ -611,8 +621,9 @@ def update_dot_plots(n_clicks, ticker):
     [dash.dependencies.State('ticker-input', 'value')]  # Assuming you have a ticker input field
 )
 def update_line_chart(n_clicks, ticker):
+    ticker = ticker.upper()
     if ticker not in df.index:
-        return dash.no_update  # Handle the case when the ticker is not in your DataFrame
+        return go.Figure()  # Handle the case when the ticker is not in your DataFrame
     
     # Select the historical data for the specified metrics
     historical_data = df.loc[ticker][['BQ_score_annual_0y_pctile', 'BQ_score_annual_-1y_pctile', 'BQ_score_annual_-2y_pctile']]*100
@@ -652,8 +663,9 @@ def update_line_chart(n_clicks, ticker):
     [dash.dependencies.State('ticker-input', 'value')]
 )
 def update_table(n_clicks, ticker):
+    ticker = ticker.upper()
     if ticker not in df.index:
-        return dash.no_update  # Return an empty figure if no ticker is provided
+        return [None for _ in range(3)]  # Return an empty figure if no ticker is provided
 
     # Get data
     data = table_data(ticker)
@@ -719,9 +731,6 @@ def update_table(n_clicks, ticker):
         
         ]
     
-    
-    
-
     return data.to_dict('records'), columns, style_data_conditional
 
 
@@ -734,8 +743,9 @@ output_args = [Output(graph, 'figure') for graph in g_comb]
     [dash.dependencies.State('ticker-input', 'value')]
 )
 def update_histograms2(n_clicks, ticker):
+    ticker = ticker.upper()
     if ticker not in df.index:
-        return [dash.no_update for _ in range(len(g_comb))]  # Return no updates based on the length of graphs2
+        return [go.Figure() for _ in range(len(g_comb))]  # Return no updates based on the length of graphs2
     else:
         bins = 100  # Modify as needed
         return [generate_histogram(ticker, metric, bins) for metric in (met_comb)]
