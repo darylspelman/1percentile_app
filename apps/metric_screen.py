@@ -242,7 +242,6 @@ def update_industry_dropdown_metric(sector_value):
 def update_figure_metric(log_mar_cap_range, log_val_turnover_min, primary_check, selected_country, selected_sector, selected_industry,
                          x_metric, x_exp, x_min_val, x_max_val, y_metric, y_exp, y_min_val, y_max_val):
     
-    print(x_min_val, x_max_val, y_min_val, y_max_val)
     
     
     # Convert log values back to original values

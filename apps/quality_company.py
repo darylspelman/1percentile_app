@@ -86,16 +86,18 @@ def table_data(ticker):
     df_table = pd.DataFrame(df.loc[ticker])
     df_table.columns=['Metric']
     
-    # List of metrics for table
-    metric_list = ['BQ_score', 'V_score', 'EQ_score', 'govern_score',
-                    'ROE', 'median ROE 3-yr', 'ROA', 'RNOA', 'ROCE',
-                    'GPM%', 'OPMargin', 'PM', 'median PM 3-yr', 'SGA_pctSales', 'R&D_pctSales',
-                    'Revenue 1-yr CAGR', 'ShareholderEquity 1-yr CAGR', 'Revenue 3-yr CAGR', 'ShareholderEquity 3-yr CAGR',
-                    'assets/equity', 'net_debt/equity',
-                    'sales/assets', 'Sales/avg_NOA',
-                    'Share growth', 'div_payout_rate',
-                    'days_CCC', 'days_sales_outstanding', 'days_inventory_outstanding', 'days_payables_outstanding',
-                    'P/E_ttm', 'P/B', 'P/S_ttm', 'EV/EBIT_ttm', 'EV/EBITDA_ttm']
+    # List of metrics for table. Row headings need to start with 3 spaces '   ' to be trated as a heading row
+    metric_list = ['   Compound Scores','BQ_score', 'V_score', 'EQ_score', 'govern_score',
+                   '   Return on Capital', 'ROE', 'median ROE 3-yr', 'ROA', 'RNOA', 'ROIC',
+                   '   Growth','Revenue 1-yr CAGR', 'ShareholderEquity 1-yr CAGR', 'Revenue 3-yr CAGR', 'ShareholderEquity 3-yr CAGR',
+                   '   Profitability','GPM%', 'OPMargin', 'PM', 'median PM 3-yr', 'SGA_pctSales', 'CFO%sales', 'FCF%sales',
+                    '   Asset Intensity','sales/assets', 'Sales/avg_NOA',
+                    '   Capital Structure','assets/equity', 'net_debt/equity',
+                    '   Reinvestment','R&D_pctSales','S&M%sales','capitalExpenditures_pctSales', 'total_investment/sales',
+                    '   Shareholder Transaction', 'Share growth', 'div_payout_rate',
+                    '   Valuation','P/E_ttm', 'P/B', 'P/S_ttm', 'EV/EBIT_ttm', 'EV/EBITDA_ttm',
+                    '   Earnings QuaLity','days_CCC', 'days_sales_outstanding', 'days_inventory_outstanding', 'days_payables_outstanding',
+                    'sloan_accruals_assets', 'avg_PPE_life', 'FCF%sales', 'intangibleAssets/totalAssets','CFO_NI']
     
     # Benchmark list and table headings
     peer_group = ['Global', 'All Country', 'Country & Sector', 'Global Industry']
@@ -118,7 +120,10 @@ def table_data(ticker):
         percent_list = []
         value_list = []
         for metric in metric_list:
-            value = df_table.loc[metric].iloc[0]
+            if metric in df_table.index: # Check for header row and label it as NaN
+                value = df_table.loc[metric].iloc[0]
+            else:
+                value = np.nan
             if np.isnan(float(value)):
                 percentile = np.nan
             else:
@@ -130,7 +135,7 @@ def table_data(ticker):
     
     # Add number of observations
     working['Value'] = value_list
-    toprow = pd.DataFrame([benchmark_list], columns=peer_group, index=['Number companies'])
+    toprow = pd.DataFrame([benchmark_list], columns=peer_group, index=['Number benchmark companies'])
     working = pd.concat([toprow, working], axis=0)
     
     # Add label names
@@ -393,7 +398,7 @@ graphs1=[f'histogram-{i+1}' for i in range(len(metric_list_A))]
 
 # Define the histogram plots for the individual metric plots. Each section has it's own list
 #Capital Structure
-met_roc = ['ROE', 'median ROE 3-yr', 'ROE_change', 'ROA', 'RNOA', 'ROCE']
+met_roc = ['ROE', 'median ROE 3-yr', 'ROE_change', 'ROA', 'RNOA', 'ROIC'] #, 'ROCE']#, 'FCF%sales'] #'ROIC']
 g_roc = [f'hist_roc-{i+1}' for i in range(len(met_roc))]
 
 #Dupont
@@ -405,7 +410,7 @@ met_growth = ['Revenue 1-yr CAGR', 'Revenue 3-yr CAGR', 'ShareholderEquity 1-yr 
 g_growth = [f'hist_growth-{i+1}' for i in range(len(met_growth))]
 
 #Profitability
-met_profit = ['GPM%', 'OPMargin', 'OPM_change', 'PM', 'median PM 3-yr', 'PM_change', 'SGA_pctSales']
+met_profit = ['GPM%', 'OPMargin', 'OPM_change', 'PM', 'median PM 3-yr', 'PM_change', 'SGA_pctSales', 'FCF%sales', 'CFO%sales']
 g_profit = [f'hist_profit-{i+1}' for i in range(len(met_profit))]
 
 #Asset Intensity
@@ -413,15 +418,15 @@ met_ai = ['sales/assets', 'sales/asset_change', 'Sales/avg_NOA']
 g_ai = [f'hist_ai-{i+1}' for i in range(len(met_ai))]
 
 # Capital Structure
-met_cap = ['assets/equity', 'assets/equity_change', 'net_debt/equity'] #Add net_debt
+met_cap = ['assets/equity', 'assets/equity_change', 'net_debt/equity']
 g_cap = [f'hist_cap-{i+1}' for i in range(len(met_cap))]
 
 # Reinvestment
-met_inv = ['R&D_pctSales'] #Add net_debt
+met_inv = ['R&D_pctSales', 'S&M%sales', 'capitalExpenditures_pctSales', 'total_investment/sales']
 g_inv = [f'hist_inv-{i+1}' for i in range(len(met_inv))]
 
 # Shareholder Transaction
-met_share = ['Share growth', 'div_payout_rate'] #Add net_debt
+met_share = ['Share growth', 'div_payout_rate']
 g_share = [f'hist_share-{i+1}' for i in range(len(met_share))]
 
 # Valuation
@@ -429,7 +434,8 @@ met_val = ['P/E_ttm', 'P/B', 'P/S_ttm', 'EV/EBIT_ttm', 'EV/EBITDA_ttm']
 g_val = [f'hist_val-{i+1}' for i in range(len(met_val))]
 
 # Earnings Quality
-met_eq = ['days_CCC', 'days_CCC_change', 'days_sales_outstanding', 'days_inventory_outstanding', 'days_payables_outstanding']
+met_eq = ['days_CCC', 'days_CCC_change', 'days_sales_outstanding', 'days_inventory_outstanding', 'days_payables_outstanding', 
+          'sloan_accruals_assets', 'CFO_NI', 'avg_PPE_life', 'intangibleAssets/totalAssets']
 g_eq = [f'hist_eq-{i+1}' for i in range(len(met_eq))]
 
 
@@ -491,7 +497,7 @@ layout = html.Div([
         dcc.Graph(id='line-chart', style={'height': '450px'}),
 
         # SUMMARY TABLE
-        dbc.Row(dbc.Col(html.H2("Summary Performance vs Peer Groups", className="text-left"), 
+        dbc.Row(dbc.Col(html.H2("Summary Performance vs Benchmark Groups", className="text-left"), 
                          className="mb-3 mt-3", style={'padding-top':'20px'})),
         
         html.Div([
@@ -669,7 +675,7 @@ def update_table(n_clicks, ticker):
     # Get data
     data = table_data(ticker)
     data['Value'] = data['Value'].apply(format_value)
-
+    
     # Define columns
     columns = [{'name': col, 'id': col} for col in data.columns]
 
@@ -726,9 +732,17 @@ def update_table(n_clicks, ticker):
         
         # Ensure first row is white regardless
         {'if': {'row_index': 0},
-         'backgroundColor': 'white'}
+         'backgroundColor': 'white'},
         
+        # Shade entire row in light blue if index starts with "000"
+        {'if': {'filter_query': '{Metric} contains "   "',            },
+            'backgroundColor': '#DEE5ED', 'fontWeight': 'bold'},
         ]
+    
+    
+    # Drop the '000' tag from the column Metric before returning it
+    # data['Metric'] = data['Metric'].str.replace('000', '')
+    
     
     return data.to_dict('records'), columns, style_data_conditional
 

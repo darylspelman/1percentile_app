@@ -1,6 +1,6 @@
 from dash import html
 import dash_bootstrap_components as dbc
-from dash_bootstrap_components._components.NavbarBrand import NavbarBrand
+# from dash_bootstrap_components._components.NavbarBrand import NavbarBrand
 
 
 # needed only if running this as a single page app
@@ -10,7 +10,8 @@ from dash_bootstrap_components._components.NavbarBrand import NavbarBrand
 # =============================================================================
 
 
-style_image = {"border":"0px solid black"} # 'display': 'inline-block'}
+style_image = {"border":"0px solid black", "margin-bottom": "0px"} # 'display': 'inline-block'}
+# navbar_style = {"margin-top": "20px"} 
 style_htmlA = {'text-align':'left','vertical-align':'center',"border":"0px solid black"} #, 'overflow':'auto'} #, 'white-space':'nowrap'}
 style_col = {"border":"0px solid black"}
 style_line = {"border-bottom":"1px solid gray"}
@@ -82,7 +83,7 @@ layout = html.Div(
             ],
             fluid=True,  # Make the container fluid to allow it to resize with the screen
             style={"padding": "20px", "height": "100vh"},  # Add padding around the container
-        ),        
+        ),     
     ],
     style={
         "background-image": 'url("assets/airplane_dash_opaque2_3.jpg")',

@@ -63,7 +63,7 @@ sales/asset_change,Sales / Assets change
 Sales/avg_NOA,Sales / NOA
 days_CCC,Cash Conversion Cycle (days)
 days_CCC_change,CCC change (days)
-R&D_pctSales,R&D % Sales
+R&D_pctSales,R&D / Sales
 days_sales_outstanding,Days Sales
 days_inventory_outstanding,Days Inventory
 days_payables_outstanding,Days Payables
@@ -73,5 +73,14 @@ P/S_ttm,P/S ttm
 EV/EBIT_ttm,EV/EBIT ttm
 EV/EBITDA_ttm,EV/EBITDA ttm
 SGA_pctSales,SG&A / Sales
-ROCE,ROIC
+ROIC,ROIC
 net_debt/equity,Net Debt / Equity
+sloan_accruals_assets,Accruals / Assets
+CFO%sales,CFO / Sales
+avg_PPE_life,PPE life (years)
+FCF%sales,FCF / Sales
+intangibleAssets/totalAssets,Intangibles / Total Assets
+CFO_NI,CFO / NI
+S&M%sales,Marketing / Sales
+total_investment/sales,Total Investments / Sales
+capitalExpenditures_pctSales,Capex / Sales
