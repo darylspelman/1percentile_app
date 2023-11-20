@@ -11,7 +11,6 @@ import dash_bootstrap_components as dbc
 
 
 style_image = {"border":"0px solid black", "margin-bottom": "0px"} # 'display': 'inline-block'}
-# navbar_style = {"margin-top": "20px"} 
 style_htmlA = {'text-align':'left','vertical-align':'center',"border":"0px solid black"} #, 'overflow':'auto'} #, 'white-space':'nowrap'}
 style_col = {"border":"0px solid black"}
 style_line = {"border-bottom":"1px solid gray"}
@@ -76,8 +75,20 @@ layout = html.Div(
                             ),
                             className="mb-3",
                         ),
+                        dbc.Col(
+                            html.A(
+                                [
+                                    html.Img(src="/assets/comps.png", height="45px", style=style_image),
+                                    dbc.NavbarBrand(["Comparable Companies"], className="ml-2 navbar-brand-text"),
+                                ],
+                                style=style_htmlA,
+                                href="/comp_metrics",
+                            ),
+                            className="mb-3",
+                        ),
                     ],style={"margin-left":"10%"}
                 ),
+                               
                 ### Closing padding
                 dbc.Row(style={"height": "20px"}),
             ],
