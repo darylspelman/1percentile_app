@@ -8,7 +8,7 @@ from app import server
 from app import app
 
 # import all pages in the app
-from apps import home, quality_company, quality_screen, metric_screen, comp_metrics
+from apps import home, quality_company, quality_screen, metric_screen, comp_metrics, fundamentals
 
 
 #from memory_profiler import profile
@@ -27,6 +27,7 @@ dropdown = dbc.DropdownMenu(
         dbc.DropdownMenuItem("Company Screen", href="/quality_screen"),
         dbc.DropdownMenuItem("Metric Screen", href="/metric_screen"),
         dbc.DropdownMenuItem("Comparable Metrics", href="/comp_metrics"),
+        dbc.DropdownMenuItem("Fundamentals", href="/fundamentals"),
     ],
     nav = True,
     in_navbar = True,
@@ -97,6 +98,8 @@ def display_page(pathname):
         return metric_screen.layout
     elif pathname == '/comp_metrics':
         return comp_metrics.layout
+    elif pathname == '/fundamentals':
+        return fundamentals.layout
     else:
         return home.layout
 

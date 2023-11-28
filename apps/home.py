@@ -86,6 +86,17 @@ layout = html.Div(
                             ),
                             className="mb-3",
                         ),
+                        dbc.Col(
+                            html.A(
+                                [
+                                    html.Img(src="/assets/rv-tear.png", height="45px", style=style_image),
+                                    dbc.NavbarBrand(["Fundamentals"], className="ml-2 navbar-brand-text"),
+                                ],
+                                style=style_htmlA,
+                                href="/fundamentals",
+                            ),
+                            className="mb-3",
+                        ),
                     ],style={"margin-left":"10%"}
                 ),
                                
