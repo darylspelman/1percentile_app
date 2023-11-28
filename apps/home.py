@@ -97,6 +97,18 @@ layout = html.Div(
                             ),
                             className="mb-3",
                         ),
+                       dbc.Col(
+                           html.A(
+                               [
+                                   html.Img(src="/assets/universe.png", height="45px", style=style_image),
+                                   dbc.NavbarBrand(["Ticker Lookup"], className="ml-2 navbar-brand-text"),
+                               ],
+                               style=style_htmlA,
+                               href="/ticker_lookup",
+                           ),
+                           className="mb-3",
+                       ),                     
+                        
                     ],style={"margin-left":"10%"}
                 ),
                                
