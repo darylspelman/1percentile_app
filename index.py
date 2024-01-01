@@ -1,6 +1,8 @@
+
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
+
 import dash_bootstrap_components as dbc
 
 # must add this line in order for the app to be deployed successfully on Heroku
@@ -8,7 +10,7 @@ from app import server
 from app import app
 
 # import all pages in the app
-from apps import home, quality_company, quality_screen, metric_screen, comp_metrics, fundamentals, ticker_lookup
+from apps import home, quality_company, quality_screen, metric_screen, comp_metrics, fundamentals, ticker_lookup, quality_drivers
 
 
 #from memory_profiler import profile
@@ -24,10 +26,15 @@ dropdown = dbc.DropdownMenu(
         dbc.DropdownMenuItem(divider=True),
 
         dbc.DropdownMenuItem("Company Quality", href="/quality_company"),
-        dbc.DropdownMenuItem("Company Screen", href="/quality_screen"),
-        dbc.DropdownMenuItem("Metric Screen", href="/metric_screen"),
+        dbc.DropdownMenuItem("Quality Drivers", href="/quality_drivers"),
         dbc.DropdownMenuItem("Comparable Metrics", href="/comp_metrics"),
         dbc.DropdownMenuItem("Fundamentals", href="/fundamentals"),
+        dbc.DropdownMenuItem(divider=True),
+       
+        dbc.DropdownMenuItem("Company Screen", href="/quality_screen"),
+        dbc.DropdownMenuItem("Metric Screen", href="/metric_screen"),
+        dbc.DropdownMenuItem(divider=True),
+ 
         dbc.DropdownMenuItem("Ticker Lookup", href="/ticker_lookup"),
     ],
     nav = True,
@@ -84,8 +91,10 @@ for i in [2]:
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     navbar,
-    html.Div(id='page-content')
+    html.Div(id='page-content'),
+    dcc.Store(id='shared-data', storage_type='session', data={'ticker': 'AAPL'})  # Store a value inside the code to be passed from page to page
 ])
+
 
 
 @app.callback(Output('page-content', 'children'),
@@ -95,6 +104,8 @@ def display_page(pathname):
         return quality_company.layout
     elif pathname == '/quality_screen':
         return quality_screen.layout
+    elif pathname == '/quality_drivers':
+        return quality_drivers.layout
     elif pathname == '/metric_screen':
         return metric_screen.layout
     elif pathname == '/comp_metrics':

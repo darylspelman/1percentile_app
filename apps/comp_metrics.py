@@ -1,9 +1,11 @@
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
+
+from dash import callback_context
 
 #Needed when running in full environment
 from app import app
@@ -184,7 +186,7 @@ layout = html.Div([
             ),
             
         html.Div([
-            dcc.Input(id='ticker-input-comps', value='AAPL', type='text', style={'margin-right': '10px'}),  # Default value is AAPL
+            dcc.Input(id='ticker-input-comps', type='text', style={'margin-right': '10px'}),  # Default value is AAPL
             html.Button(id='submit-button-comps', n_clicks=0, children='Submit', style={'margin-left': '10px'}),
         ], style={'padding': '10px'}),
 
@@ -291,6 +293,31 @@ layout = html.Div([
     ])
 
 
+# Set the default value at the start for the Input field
+@app.callback(
+    Output('ticker-input-comps', 'value'),
+    [Input('shared-data', 'data')],
+    prevent_initial_call=False  # This is important to prevent the callback from running when the page first loads
+)
+def set_default_ticker_value(stored_ticker):
+    if stored_ticker and 'ticker' in stored_ticker:
+        return stored_ticker['ticker']
+    return 'MSFT'  # Fallback default value
+
+
+# Update the dcc.Store value when update button is clicked
+@app.callback(
+    Output('shared-data', 'data', allow_duplicate=True),
+    Input('submit-button-comps', 'n_clicks'),
+    dash.dependencies.State('ticker-input-comps', 'value'),
+    prevent_initial_call=True
+)
+def update_shared_data(n_clicks, ticker_value):
+    if n_clicks is not None and ticker_value is not None:
+        return {'ticker': ticker_value.upper().strip()}
+    return dash.no_update
+
+
 
 # Callback for ticker message
 @app.callback(
@@ -299,11 +326,15 @@ layout = html.Div([
      Output('country-dropdown-comps', 'value'),
      Output('sector-dropdown-comps', 'value'),
      Output('industry-dropdown-comps', 'value')],  # Two outputs: one for the plot and one for the message
-    [Input('submit-button-comps', 'n_clicks')],
+    [Input('submit-button-comps', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input-comps', 'value')]
 )
-def update_figure_and_message(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_figure_and_message(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+        ticker = stored_ticker['ticker']
+    ticker = ticker.upper().strip()
+
     if ticker not in df.index:
         return go.Figure(), 'Ticker not in database', None, 'All'  # No update to the graph, message updated
     else:
@@ -351,11 +382,17 @@ def update_figure_and_message(n_clicks, ticker):
         Input('country-dropdown-comps', 'value'),
         Input('sector-dropdown-comps', 'value'),
         Input('industry-dropdown-comps', 'value'),
-        [dash.dependencies.State('ticker-input-comps', 'value')]
-    ]
+        Input('shared-data', 'data')],
+    [dash.dependencies.State('ticker-input-comps', 'value')]
 )
 
-def update_figure(log_mar_cap_range, log_val_turnover_min, primary_check, selected_country, selected_sector, selected_industry, ticker):
+def update_figure(log_mar_cap_range, log_val_turnover_min, primary_check, selected_country, selected_sector, selected_industry, 
+                  stored_ticker, ticker):
+
+    if ticker == None:
+        ticker = stored_ticker['ticker']
+    ticker = ticker.upper().strip()    
+    print(ticker)
     
     ## PREP THE INPUT DATA
     # Convert log values back to original values for range sliders
@@ -363,7 +400,7 @@ def update_figure(log_mar_cap_range, log_val_turnover_min, primary_check, select
     val_turnover_min = 10**log_val_turnover_min
     
     # Convert ticker from a list to a string
-    ticker = ticker[0]
+    # ticker = ticker[0]
     
     # Convert selected country to a list if not already. First instance is always a string and then subsequently always a list
     if isinstance(selected_country, str):

@@ -470,7 +470,7 @@ layout = html.Div([
         # html.Button(id='submit-button', n_clicks=0, children='Submit'),
 
         html.Div([
-            dcc.Input(id='ticker-input', value='AAPL', type='text', style={'margin-right': '10px'}),  # Default value is AAPL
+            dcc.Input(id='ticker-input', type='text', style={'margin-right': '10px'}),  # Default value is AAPL
             html.Button(id='submit-button', n_clicks=0, children='Submit', style={'margin-left': '10px'}),
         ], style={'padding': '10px'}),
 
@@ -511,51 +511,34 @@ layout = html.Div([
                                 }),
                 ]),
 
-        # DRIVER BREAKDOWN
-        dbc.Row(dbc.Col(html.H2("Performance Drivers", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        
-        dbc.Row(dbc.Col(html.H3("Return on Capital", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_roc, chart_per_row, height_per_chart),
-
-        dbc.Row(dbc.Col(html.H3("Dupont Decomposition", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_dupont, chart_per_row, height_per_chart),
-
-        dbc.Row(dbc.Col(html.H3("Growth", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),        
-        *generate_layout_children(g_growth, chart_per_row, height_per_chart),
-    
-        dbc.Row(dbc.Col(html.H3("Profitability", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_profit, chart_per_row, height_per_chart),
-        
-        dbc.Row(dbc.Col(html.H3("Asset Intensity", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_ai, chart_per_row, height_per_chart),
-
-        dbc.Row(dbc.Col(html.H3("Capital Structure", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_cap, chart_per_row, height_per_chart),
-
-        dbc.Row(dbc.Col(html.H3("Reinvestment", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_inv, chart_per_row, height_per_chart),
-
-        dbc.Row(dbc.Col(html.H3("Shareholder Transaction", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})), 
-        *generate_layout_children(g_share, chart_per_row, height_per_chart),
-        
-        dbc.Row(dbc.Col(html.H3("Valuation", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_val, chart_per_row, height_per_chart),
-        
-        dbc.Row(dbc.Col(html.H3("Earnings Quality", className="text-left"), 
-                         className="mb-3 mt-3", style={'padding-top':'20px'})),
-        *generate_layout_children(g_eq, chart_per_row, height_per_chart),
     ])
 ])
+
+
+# Set the default value at the start for the Input field
+@app.callback(
+    Output('ticker-input', 'value'),
+    [Input('shared-data', 'data')],
+    prevent_initial_call=False  # This is important to prevent the callback from running when the page first loads
+)
+def set_default_ticker_value(stored_ticker):
+    if stored_ticker and 'ticker' in stored_ticker:
+        return stored_ticker['ticker']
+    return 'MSFT'  # Fallback default value
+
+
+# Update the dcc.Store value when update button is clicked
+@app.callback(
+    Output('shared-data', 'data', allow_duplicate=True),
+    Input('submit-button', 'n_clicks'),
+    dash.dependencies.State('ticker-input', 'value'),
+    prevent_initial_call=True
+)
+def update_shared_data(n_clicks, ticker_value):
+    if n_clicks is not None and ticker_value is not None:
+        return {'ticker': ticker_value.upper()}
+    return dash.no_update
+
 
 
 # First callback for the histograms
@@ -564,11 +547,16 @@ layout = html.Div([
      Output('histogram-2', 'figure'),
      Output('histogram-3', 'figure'),
      Output('histogram-4', 'figure')],
-    [Input('submit-button', 'n_clicks')],
+    [Input('submit-button', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input', 'value')]
 )
-def update_histograms(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_histograms(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+       ticker = stored_ticker['ticker']
+
+    ticker = ticker.upper().strip()
+   
     if ticker not in df.index:
         return [go.Figure() for _ in range(4)]  # Return no updates for all 4 graphs
     else:
@@ -581,11 +569,16 @@ def update_histograms(n_clicks, ticker):
     [Output('spider-plot', 'figure'),
      Output('ticker-message', 'children'),
      Output('stock-info', 'children')],  # Two outputs: one for the plot and one for the message
-    [Input('submit-button', 'n_clicks')],
+    [Input('submit-button', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input', 'value')]
 )
-def update_figure_and_message(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_figure_and_message(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+       ticker = stored_ticker['ticker']
+
+    ticker = ticker.upper().strip()    
+
     if ticker not in df.index:
         return go.Figure(), 'Ticker not in database', None  # No update to the graph, message updated
     else:
@@ -605,11 +598,16 @@ def update_figure_and_message(n_clicks, ticker):
 @app.callback(
     [Output('dot-plot1', 'figure'),
      Output('dot-plot2', 'figure')],  # Two outputs: one for the plot and one for the message
-    [Input('submit-button', 'n_clicks')],
+    [Input('submit-button', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input', 'value')]
 )
-def update_dot_plots(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_dot_plots(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+       ticker = stored_ticker['ticker']
+
+    ticker = ticker.upper().strip()    
+
     if ticker not in df.index:
         return go.Figure(), go.Figure()
     else:
@@ -622,11 +620,17 @@ def update_dot_plots(n_clicks, ticker):
 #Plots the historical percentile line chart
 @app.callback(
     Output('line-chart', 'figure'),
-    [Input('submit-button', 'n_clicks')],
+    [Input('submit-button', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input', 'value')]  # Assuming you have a ticker input field
 )
-def update_line_chart(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_line_chart(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+        ticker = stored_ticker['ticker']
+
+    ticker = ticker.upper().strip() 
+
+
     if ticker not in df.index:
         return go.Figure()  # Handle the case when the ticker is not in your DataFrame
     
@@ -664,11 +668,16 @@ def update_line_chart(n_clicks, ticker):
     [Output('summ-table', 'data'),
      Output('summ-table', 'columns'),
      Output('summ-table', 'style_data_conditional')],
-    [Input('submit-button', 'n_clicks')],
+    [Input('submit-button', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input', 'value')]
 )
-def update_table(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_table(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+        ticker = stored_ticker['ticker']
+
+    ticker = ticker.upper().strip() 
+
     if ticker not in df.index:
         return [None for _ in range(3)]  # Return an empty figure if no ticker is provided
 
@@ -747,21 +756,6 @@ def update_table(n_clicks, ticker):
     return data.to_dict('records'), columns, style_data_conditional
 
 
-
-# Third callback for all the histograms
-output_args = [Output(graph, 'figure') for graph in g_comb]
-@app.callback(
-    output_args,
-    [Input('submit-button', 'n_clicks')],
-    [dash.dependencies.State('ticker-input', 'value')]
-)
-def update_histograms2(n_clicks, ticker):
-    ticker = ticker.upper()
-    if ticker not in df.index:
-        return [go.Figure() for _ in range(len(g_comb))]  # Return no updates based on the length of graphs2
-    else:
-        bins = 100  # Modify as needed
-        return [generate_histogram(ticker, metric, bins) for metric in (met_comb)]
 
 
 

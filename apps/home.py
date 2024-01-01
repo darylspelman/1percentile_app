@@ -13,7 +13,7 @@ import dash_bootstrap_components as dbc
 style_image = {"border":"0px solid black", "margin-bottom": "0px"} # 'display': 'inline-block'}
 style_htmlA = {'text-align':'left','vertical-align':'center',"border":"0px solid black"} #, 'overflow':'auto'} #, 'white-space':'nowrap'}
 style_col = {"border":"0px solid black"}
-style_line = {"border-bottom":"1px solid gray"}
+style_line = {"border-bottom":"1px solid gray", "margin-left":"5%", "margin-right":"5%"}
 style_text = {
     'text-align': 'left',
     'vertical-align': 'center',
@@ -39,7 +39,16 @@ layout = html.Div(
                         )
                     ]
                 ),
-                dbc.Row(style={"height": "20px"}),
+                
+            # Company Analysis
+                    dbc.Row(style={"height": "60px"}),
+                            dbc.Row([
+                                dbc.Col(html.H4("Company Analysis", className="text-left")
+                                        , className="mb-3", style=style_line)
+                            ]),  
+            
+                
+                # dbc.Row(style={"height": "20px"}),
                 dbc.Row(
                     [
                         dbc.Col(
@@ -53,6 +62,50 @@ layout = html.Div(
                             ),
                             className="mb-3",
                         ),
+                dbc.Col(
+                            html.A(
+                                [
+                                    html.Img(src="/assets/L1.png", height="45px", style=style_image),
+                                    dbc.NavbarBrand(["Quality Drivers"], className="ml-2 navbar-brand-text"),
+                                ],
+                                style=style_htmlA,
+                                href="/quality_drivers",
+                            ),
+                            className="mb-3",
+                        ),
+                dbc.Col(
+                    html.A(
+                        [
+                            html.Img(src="/assets/comps.png", height="45px", style=style_image),
+                            dbc.NavbarBrand(["Comparable Companies"], className="ml-2 navbar-brand-text"),
+                        ],
+                        style=style_htmlA,
+                        href="/comp_metrics",
+                    ),
+                    className="mb-3",
+                ),
+                dbc.Col(
+                    html.A(
+                        [
+                            html.Img(src="/assets/rv-tear.png", height="45px", style=style_image),
+                            dbc.NavbarBrand(["Fundamentals"], className="ml-2 navbar-brand-text"),
+                        ],
+                        style=style_htmlA,
+                        href="/fundamentals",
+                    ),
+                    className="mb-3",
+                ),   
+                   ],style={"margin-left":"10%"}
+               ),                     
+                        
+            # Screens
+                    dbc.Row(style={"height": "60px"}),
+                            dbc.Row([
+                                dbc.Col(html.H4("Screens", className="text-left")
+                                        , className="mb-3", style=style_line)
+                            ]),                        
+                dbc.Row(
+                    [                        
                         dbc.Col(
                             html.A(
                                 [
@@ -75,28 +128,19 @@ layout = html.Div(
                             ),
                             className="mb-3",
                         ),
-                        dbc.Col(
-                            html.A(
-                                [
-                                    html.Img(src="/assets/comps.png", height="45px", style=style_image),
-                                    dbc.NavbarBrand(["Comparable Companies"], className="ml-2 navbar-brand-text"),
-                                ],
-                                style=style_htmlA,
-                                href="/comp_metrics",
-                            ),
-                            className="mb-3",
-                        ),
-                        dbc.Col(
-                            html.A(
-                                [
-                                    html.Img(src="/assets/rv-tear.png", height="45px", style=style_image),
-                                    dbc.NavbarBrand(["Fundamentals"], className="ml-2 navbar-brand-text"),
-                                ],
-                                style=style_htmlA,
-                                href="/fundamentals",
-                            ),
-                            className="mb-3",
-                        ),
+                    ],style={"margin-left":"10%"}
+                ),   
+
+                        
+            # Other
+                    dbc.Row(style={"height": "60px"}),
+                            dbc.Row([
+                                dbc.Col(html.H4("Other", className="text-left")
+                                        , className="mb-3", style=style_line)
+                            ]),
+ 
+                    dbc.Row(
+                     [                             
                        dbc.Col(
                            html.A(
                                [

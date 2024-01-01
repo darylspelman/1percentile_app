@@ -19,7 +19,6 @@ from scipy.stats import percentileofscore
 from app import app
 
 
-
 def create_IS_table(ticker):
     """
     Creates the custom table for the income statement
@@ -122,7 +121,7 @@ def create_IS_table(ticker):
     df_final = df_final.rename(index=new_names)
     
     
-    print('\n', df_final)
+    # print('\n', df_final)
     
     # Finally reset index and return 
     df_return = df_final.reset_index()
@@ -171,7 +170,7 @@ layout = html.Div([
         # html.Button(id='submit-button', n_clicks=0, children='Submit'),
 
         html.Div([
-            dcc.Input(id='ticker-input-fund', value='AAPL', type='text', style={'margin-right': '10px'}),  # Default value is AAPL
+            dcc.Input(id='ticker-input-fund', type='text', style={'margin-right': '10px'}),  # Default value is AAPL
             html.Button(id='submit-button-fund', n_clicks=0, children='Submit', style={'margin-left': '10px'}),
         ], style={'padding': '10px'}),
 
@@ -202,22 +201,51 @@ layout = html.Div([
                              style_cell=style_cell,
                              ),
                 ]),
-
+    dbc.Row(style={"height": "60px"}), # Padding at the bottom of the page
     ])
 ])
 
 
+# Set the default value at the start for the Input field
+@app.callback(
+    Output('ticker-input-fund', 'value'),
+    [Input('shared-data', 'data')],
+    prevent_initial_call=False  # This is important to prevent the callback from running when the page first loads
+)
+def set_default_ticker_value(stored_ticker):
+    if stored_ticker and 'ticker' in stored_ticker:
+        return stored_ticker['ticker']
+    return 'MSFT'  # Fallback default value
 
-# Second callback for the spider plot and the message
+
+# Update the dcc.Store value when update button is clicked
+@app.callback(
+    Output('shared-data', 'data', allow_duplicate=True),
+    Input('submit-button-fund', 'n_clicks'),
+    dash.dependencies.State('ticker-input-fund', 'value'),
+    prevent_initial_call=True
+)
+def update_shared_data(n_clicks, ticker_value):
+    if n_clicks is not None and ticker_value is not None:
+        return {'ticker': ticker_value.upper()}
+    return dash.no_update
+
+
+# Callback for the message
 @app.callback(
     [Output('ticker-message-fund', 'children'),
      Output('stock-info-fund', 'children')],  # Two outputs: one for the plot and one for the message
-    [Input('submit-button-fund', 'n_clicks')],
+    [Input('submit-button-fund', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input-fund', 'value')]
 )
-def update_figure_and_message(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_figure_and_message(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+        ticker = stored_ticker['ticker']
+
+    ticker = ticker.upper().strip()
     if ticker not in df_stocks.index:
+
         return 'Ticker not in database', None  # No update to the graph, message updated
     else:
         name = df_stocks.loc[ticker]['name'] + ' (' + ticker + ')'
@@ -231,16 +259,20 @@ def update_figure_and_message(n_clicks, ticker):
         return name, info  # Graph updated, message updated with name
 
 
-
+# Callback for the data table
 @app.callback(
     [Output('summ-table-fund', 'data'),
       Output('summ-table-fund', 'columns'),
       Output('summ-table-fund', 'style_data_conditional')],
-    [Input('submit-button-fund', 'n_clicks')],
+    [Input('submit-button-fund', 'n_clicks'),
+     Input('shared-data', 'data')],
     [dash.dependencies.State('ticker-input-fund', 'value')]
 )
-def update_table(n_clicks, ticker):
-    ticker = ticker.upper()
+def update_table(n_clicks, stored_ticker, ticker):
+    if ticker == None:
+        ticker = stored_ticker['ticker']
+
+    ticker = ticker.upper().strip()
     if ticker not in df_stocks.index:
         return [None for _ in range(3)]  # Return an empty figure if no ticker is provided
 

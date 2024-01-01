@@ -123,6 +123,9 @@ def update_table(search_value):
 
 
 
+
+
+
 # needed only if running this as a single page app
 # =============================================================================
 # if __name__ == '__main__':
