@@ -1,0 +1,2 @@
+To run from visual studio code in a bash terminal:
+
