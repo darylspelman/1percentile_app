@@ -145,19 +145,64 @@ layout = html.Div(
                            html.A(
                                [
                                    html.Img(src="/assets/universe.png", height="45px", style=style_image),
-                                   dbc.NavbarBrand(["Ticker Lookup"], className="ml-2 navbar-brand-text"),
+                                   dbc.NavbarBrand(["Universe"], className="ml-2 navbar-brand-text"),
                                ],
                                style=style_htmlA,
-                               href="/ticker_lookup",
+                               href="/universe",
                            ),
                            className="mb-3",
                        ),                     
-                        
+                    dbc.Col(
+                        html.A(
+                            [
+                                html.Img(src="/assets/universe.png", height="45px", style=style_image),
+                                dbc.NavbarBrand(["Ticker Lookup"], className="ml-2 navbar-brand-text"),
+                            ],
+                            style=style_htmlA,
+                            href="/ticker_lookup",
+                        ),
+                        className="mb-3",
+                    ),
                     ],style={"margin-left":"10%"}
                 ),
                                
                 ### Closing padding
                 dbc.Row(style={"height": "20px"}),
+
+                # Relative Value Arbitrage
+       dbc.Row(style={"height": "60px"}),
+               dbc.Row([
+                   dbc.Col(html.H4("Relative Value Arbitrage", className="text-left")
+                           , className="mb-3", style=style_line)
+               ]),  
+               dbc.Row(
+                   [
+                       dbc.Col(
+                           html.A(
+                               [
+                                   html.Img(src="/assets/rv-screen.png", height="45px", style=style_image),
+                                   dbc.NavbarBrand(["RV Pair Screen"], className="ml-2 navbar-brand-text"),
+                               ],
+                               style=style_htmlA,
+                               href="/rv_pair_screen",
+                           ),
+                           className="mb-3",
+                       ),
+                       dbc.Col(
+                           html.A(
+                               [
+                                   html.Img(src="/assets/rv-tear.png", height="45px", style=style_image),
+                                   dbc.NavbarBrand(["RV Pair Tearsheet (live)"], className="ml-2 navbar-brand-text"),
+                               ],
+                               style=style_htmlA,
+                               href="/rv_tearsheet",
+                           ),
+                           className="mb-3",
+                       ),
+                   ],style={"margin-left":"10%"}
+               ),     
+
+
             ],
             fluid=True,  # Make the container fluid to allow it to resize with the screen
             style={"padding": "20px", "height": "100vh"},  # Add padding around the container

@@ -10,7 +10,7 @@ from app import server
 from app import app
 
 # import all pages in the app
-from apps import home, quality_company, quality_screen, metric_screen, comp_metrics, fundamentals, ticker_lookup, quality_drivers
+from apps import home, quality_company, quality_screen, metric_screen, comp_metrics, fundamentals, ticker_lookup, quality_drivers, universe, rv_pair_screen, rv_tearsheet
 
 
 #from memory_profiler import profile
@@ -34,8 +34,14 @@ dropdown = dbc.DropdownMenu(
         dbc.DropdownMenuItem("Company Screen", href="/quality_screen"),
         dbc.DropdownMenuItem("Metric Screen", href="/metric_screen"),
         dbc.DropdownMenuItem(divider=True),
- 
+
+        dbc.DropdownMenuItem("Universe", href="/universe"), 
         dbc.DropdownMenuItem("Ticker Lookup", href="/ticker_lookup"),
+        dbc.DropdownMenuItem(divider=True),
+
+        dbc.DropdownMenuItem("RV Pair Screen", href="/rv_pair_screen"),
+        dbc.DropdownMenuItem("RV Pair Tearshhet", href="/rv_tearsheet"),
+
     ],
     nav = True,
     in_navbar = True,
@@ -114,6 +120,12 @@ def display_page(pathname):
         return fundamentals.layout
     elif pathname == '/ticker_lookup':
         return ticker_lookup.layout
+    elif pathname == '/universe':
+        return universe.layout
+    elif pathname == '/rv_tearsheet':
+        return rv_tearsheet.layout
+    elif pathname == '/rv_pair_screen':
+        return rv_pair_screen.layout
     else:
         return home.layout
 
